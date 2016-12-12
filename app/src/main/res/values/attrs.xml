@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="DragSortLayout">
+        <attr name="horizontalSpacing" format="dimension"/>
+        <attr name="verticalSpacing" format="dimension"/>
+        <attr name="columeSize" format="integer"/>
+        <attr name="stretchMode">
+            <enum name="columeWidht" value="0"/>
+            <enum name="none" value="1"/>
+            </attr>>
+    </declare-styleable>
+</resources>
