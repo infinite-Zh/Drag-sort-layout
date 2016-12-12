@@ -3,8 +3,8 @@ package com.infinite.dragsortlayout;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
-import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +16,22 @@ import android.view.WindowManager;
 
 public class DragSortLayout extends ViewGroup{
 
+    private static final float LONG_CLICK_TOUCH_SLOPE=7;
+    /**
+     * 进入长按模式的时间
+     */
     private static final int LONG_CLICK_MODE_TIME=300;
+    /**
+     * 默认列数
+     */
     private static final int DEFAULT_COLUME_SIZE=3;
+    /**
+     * 默认垂直间距
+     */
     private static final float DEFAULT_VERTICAL_SPACING=20;
+    /**
+     * 默认水平间距
+     */
     private static final float DEFAULT_HORIZONTAL_SPACING=20;
     private static final int STRETCH_MODE_COLUME_WIDTH=0;
     private static final int STRETCH_MODE_NONE=1;
@@ -27,7 +40,6 @@ public class DragSortLayout extends ViewGroup{
     private float mHorizontalSpacing=DEFAULT_HORIZONTAL_SPACING;
     private int mStretchMode=STRETCH_MODE_NONE;
 
-    private ViewDragHelper mDragHelper;
 
     public DragSortLayout(Context context) {
         this(context,null);
@@ -46,46 +58,6 @@ public class DragSortLayout extends ViewGroup{
         mStretchMode=ta.getInt(R.styleable.DragSortLayout_stretchMode,STRETCH_MODE_NONE);
         ta.recycle();
 
-        mDragHelper=ViewDragHelper.create(this, 1f,new ViewDragHelper.Callback() {
-            @Override
-            public boolean tryCaptureView(View child, int pointerId) {
-                child.setAlpha(0.5f);
-                return true;
-            }
-
-            @Override
-            public int clampViewPositionHorizontal(View child, int left, int dx) {
-
-                int leftOffset=getPaddingLeft();
-                int rightOffset=getMeasuredWidth()-child.getMeasuredWidth()-getPaddingRight();
-                int result=Math.min(Math.max(leftOffset,left),rightOffset);
-
-                return result;
-            }
-
-            @Override
-            public int clampViewPositionVertical(View child, int top, int dy) {
-                int topOffset=getPaddingTop();
-                int bottomOffset=getMeasuredHeight()-child.getMeasuredHeight()-topOffset;
-
-                int result=Math.min(Math.max(top,topOffset),bottomOffset);
-                return result;
-            }
-
-            @Override
-            public void onViewDragStateChanged(int state) {
-                super.onViewDragStateChanged(state);
-            }
-
-            @Override
-            public void onViewReleased(View releasedChild, float xvel, float yvel) {
-                super.onViewReleased(releasedChild, xvel, yvel);
-                //释放后，退出长按模式
-                bLongClickMode=false;
-                releasedChild.setAlpha(1f);
-
-            }
-        });
     }
 
     @Override
@@ -161,60 +133,128 @@ public class DragSortLayout extends ViewGroup{
         return wm.getDefaultDisplay().getWidth();
     }
 
-    @Override
-    public boolean onInterceptHoverEvent(MotionEvent event) {
-       return mDragHelper.shouldInterceptTouchEvent(event);
-    }
 
 
+    private float mLastX,mLastY,mCurretnX,mCurrentY;
+    private LongClickRunnable mLongClickRunnable;
+    private View mDragView;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
+
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
+                mLastX=event.getX();
+                mLastY=event.getY();
                 bCancel=false;
-                DragRunnable runnable=new DragRunnable(event);
-                postDelayed(runnable,LONG_CLICK_MODE_TIME);
+                mLongClickRunnable=new LongClickRunnable(mLastX,mLastY);
+                postDelayed(mLongClickRunnable,LONG_CLICK_MODE_TIME);
+                mDragView=findChildByPoints(mLastX,mLastY);
                 break;
             case MotionEvent.ACTION_MOVE:
+                mCurrentY=event.getY();
+                mCurretnX=event.getX();
+                //如果不在长按模式，并且滑动距离超过默认设置的大小，移除长按runnable
+                if (!bLongClickMode&&mLongClickRunnable!=null&&!checkForLongClick(mCurretnX-mLastX,mCurrentY-mLastY)){
+                    removeCallbacks(mLongClickRunnable);
+                }else {
+                    onActionMove(mCurretnX-mLastX,mCurrentY-mLastY);
+                }
 
                 break;
             case MotionEvent.ACTION_UP:
                 bCancel=true;
+                if (mLongClickRunnable!=null)
+                removeCallbacks(mLongClickRunnable);
+                onLongClickFinish(mDragView,mCurretnX,mCurrentY);
                 break;
             case MotionEvent.ACTION_CANCEL:
                 bCancel=true;
                 break;
         }
-        if (bLongClickMode)
-            mDragHelper.processTouchEvent(event);
         return true;
     }
 
     private boolean bLongClickMode=false;
     private boolean bCancel=false;
 
+
     /**
-     * 进入长按模式
+     * 长按
      */
-   private class DragRunnable implements Runnable{
+    private class LongClickRunnable implements Runnable{
 
-       private MotionEvent event;
-       public DragRunnable(MotionEvent event){
-           this.event=event;
-       }
-       @Override
-       public void run() {
-           if(!bCancel){
-               mDragHelper.processTouchEvent(event);
-               bLongClickMode=true;
-               vibrate();
-           }
+        private float mPointX,mPointY;
+        public LongClickRunnable(float pointX,float PointY){
+            this.mPointX=pointX;
+            this.mPointY=PointY;
+        }
+        @Override
+        public void run() {
+            View view=findChildByPoints(mPointX,mPointY);
+            if (view!=null){
+                view.setAlpha(0.6f);
+                vibrate();
+                bLongClickMode=true;
+                mLeft=view.getLeft();
+                mTop=view.getTop();
+            }
+        }
+    }
 
-       }
-   }
+    /** 通过坐标找到对应的子view
+     * @param pointX
+     * @param pointY
+     * @return
+     */
+    private View findChildByPoints(float pointX,float pointY){
+        for(int i=0;i<getChildCount();i++){
+            View child=getChildAt(i);
 
+            int left=child.getLeft();
+            int top=child.getTop();
+            int right=child.getRight();
+            int bottom=child.getBottom();
 
+            if (left<pointX&&pointX<right&&top<pointY&&pointY<bottom){
+                return child;
+            }
+        }
+        return null;
+    }
+
+    private void onLongClickFinish(View view,float pointX,float pointY){
+        if (view!=null){
+            view.setAlpha(1f);
+        }
+    }
+
+    /**
+     * 进入长安模式时的左上坐标
+     */
+    private int mLeft,mTop;
+
+    private void onActionMove(float dx,float dy){
+        if (mDragView!=null&&bLongClickMode){
+            int newLeft= (int) (mLeft+dx);
+            int newTop= (int) (mTop+dy);
+            mDragView.layout(newLeft,newTop,newLeft+mDragView.getMeasuredWidth(),newTop+mDragView.getMeasuredHeight());
+            Log.e("x,y","mLeft="+mLeft+"  mTop="+mTop+"  newLeft="+newLeft);
+        }
+    }
+
+    /**
+     * 判断手指滑动的距离，小于默认值则认为是长按事件
+     * @param dx
+     * @param dy
+     * @return
+     */
+    private boolean checkForLongClick(float dx,float dy){
+        if (Math.abs(dx)<=LONG_CLICK_TOUCH_SLOPE&&Math.abs(dy)<=LONG_CLICK_TOUCH_SLOPE){
+            return true;
+        }
+        return false;
+    }
     private void vibrate(){
         Vibrator vibrator= (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(100);
