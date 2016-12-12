@@ -135,7 +135,7 @@ public class DragSortLayout extends ViewGroup{
 
 
 
-    private float mLastX,mLastY,mCurretnX,mCurrentY;
+    private float mLastX,mLastY, mCurrentX,mCurrentY;
     private LongClickRunnable mLongClickRunnable;
     private View mDragView;
     @Override
@@ -153,23 +153,21 @@ public class DragSortLayout extends ViewGroup{
                 break;
             case MotionEvent.ACTION_MOVE:
                 mCurrentY=event.getY();
-                mCurretnX=event.getX();
+                mCurrentX =event.getX();
                 //如果不在长按模式，并且滑动距离超过默认设置的大小，移除长按runnable
-                if (!bLongClickMode&&mLongClickRunnable!=null&&!checkForLongClick(mCurretnX-mLastX,mCurrentY-mLastY)){
+                if (!bLongClickMode&&mLongClickRunnable!=null&&!checkForLongClick(mCurrentX -mLastX,mCurrentY-mLastY)){
                     removeCallbacks(mLongClickRunnable);
                 }else {
-                    onActionMove(mCurretnX-mLastX,mCurrentY-mLastY);
+                    onActionMove(mCurrentX -mLastX,mCurrentY-mLastY);
                 }
 
                 break;
             case MotionEvent.ACTION_UP:
-                bCancel=true;
                 if (mLongClickRunnable!=null)
                 removeCallbacks(mLongClickRunnable);
-                onLongClickFinish(mDragView,mCurretnX,mCurrentY);
+                onLongClickFinish(mDragView, mCurrentX,mCurrentY);
                 break;
             case MotionEvent.ACTION_CANCEL:
-                bCancel=true;
                 break;
         }
         return true;
@@ -224,6 +222,7 @@ public class DragSortLayout extends ViewGroup{
     }
 
     private void onLongClickFinish(View view,float pointX,float pointY){
+        bLongClickMode=false;
         if (view!=null){
             view.setAlpha(1f);
         }
