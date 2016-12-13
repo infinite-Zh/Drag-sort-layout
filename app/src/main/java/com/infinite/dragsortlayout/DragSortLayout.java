@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -135,7 +134,7 @@ public class DragSortLayout extends ViewGroup{
 
 
 
-    private float mLastX,mLastY,mCurretnX,mCurrentY;
+    private float mLastX,mLastY, mCurrentX,mCurrentY;
     private LongClickRunnable mLongClickRunnable;
     private View mDragView;
     @Override
@@ -153,23 +152,26 @@ public class DragSortLayout extends ViewGroup{
                 break;
             case MotionEvent.ACTION_MOVE:
                 mCurrentY=event.getY();
-                mCurretnX=event.getX();
+                mCurrentX =event.getX();
                 //如果不在长按模式，并且滑动距离超过默认设置的大小，移除长按runnable
-                if (!bLongClickMode&&mLongClickRunnable!=null&&!checkForLongClick(mCurretnX-mLastX,mCurrentY-mLastY)){
+                if (!bLongClickMode&&mLongClickRunnable!=null&&!checkForLongClick(mCurrentX -mLastX,mCurrentY-mLastY)){
                     removeCallbacks(mLongClickRunnable);
                 }else {
-                    onActionMove(mCurretnX-mLastX,mCurrentY-mLastY);
+                    onActionMove(mCurrentX -mLastX,mCurrentY-mLastY);
                 }
 
                 break;
             case MotionEvent.ACTION_UP:
-                bCancel=true;
+                //如果不在长按模式，并且滑动距离在指定范围内，则认为是点击事件
+                if (!bLongClickMode&&checkForLongClick(mCurrentX -mLastX,mCurrentY-mLastY)){
+                    processClick(mLastX,mLastY);
+                }
                 if (mLongClickRunnable!=null)
                 removeCallbacks(mLongClickRunnable);
-                onLongClickFinish(mDragView,mCurretnX,mCurrentY);
+                onLongClickFinish(mDragView, mCurrentX,mCurrentY);
+
                 break;
             case MotionEvent.ACTION_CANCEL:
-                bCancel=true;
                 break;
         }
         return true;
@@ -223,7 +225,14 @@ public class DragSortLayout extends ViewGroup{
         return null;
     }
 
+    /**
+     * 长按事件结束
+     * @param view
+     * @param pointX
+     * @param pointY
+     */
     private void onLongClickFinish(View view,float pointX,float pointY){
+        bLongClickMode=false;
         if (view!=null){
             view.setAlpha(1f);
         }
@@ -239,7 +248,6 @@ public class DragSortLayout extends ViewGroup{
             int newLeft= (int) (mLeft+dx);
             int newTop= (int) (mTop+dy);
             mDragView.layout(newLeft,newTop,newLeft+mDragView.getMeasuredWidth(),newTop+mDragView.getMeasuredHeight());
-            Log.e("x,y","mLeft="+mLeft+"  mTop="+mTop+"  newLeft="+newLeft);
         }
     }
 
@@ -258,5 +266,27 @@ public class DragSortLayout extends ViewGroup{
     private void vibrate(){
         Vibrator vibrator= (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(100);
+    }
+
+    public interface OnItemClickListener{
+        void onItemClick(View childView,int position);
+    }
+
+    private OnItemClickListener mItemClickListener;
+    public void setOnItemClickListener(OnItemClickListener listener){
+        this.mItemClickListener=listener;
+    }
+
+    private void processClick(float pointX,float pointY){
+        View childView=findChildByPoints(pointX,pointY);
+        if (childView!=null){
+            for(int i=0;i<getChildCount();i++){
+                if (childView==getChildAt(i)){
+                    if (mItemClickListener!=null){
+                        mItemClickListener.onItemClick(childView,i);
+                    }
+                }
+            }
+        }
     }
 }
