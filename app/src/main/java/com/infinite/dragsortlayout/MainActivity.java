@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
         mLayout.setOnItemClickListener(new DragSortLayout.OnItemClickListener() {
             @Override
             public void onItemClick(View childView, int position) {
+                if (childView instanceof TextView)
                 Log.e("click",((TextView)childView).getText()+"   "+position);
             }
         });

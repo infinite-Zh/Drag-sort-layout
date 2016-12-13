@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -195,7 +196,7 @@ public class DragSortLayout extends ViewGroup{
         public void run() {
             View view=findChildByPoints(mPointX,mPointY);
             if (view!=null){
-                view.setAlpha(0.6f);
+                view.setAlpha(0.7f);
                 vibrate();
                 bLongClickMode=true;
                 mLeft=view.getLeft();
@@ -245,9 +246,30 @@ public class DragSortLayout extends ViewGroup{
 
     private void onActionMove(float dx,float dy){
         if (mDragView!=null&&bLongClickMode){
+
+            //边界控制，不滑出屏幕
             int newLeft= (int) (mLeft+dx);
             int newTop= (int) (mTop+dy);
-            mDragView.layout(newLeft,newTop,newLeft+mDragView.getMeasuredWidth(),newTop+mDragView.getMeasuredHeight());
+            if (newLeft<=0)
+                newLeft=0;
+            if (newTop<=0)
+                newTop=0;
+
+            int newRight=newLeft+mDragView.getMeasuredWidth();
+            int newBottom=newTop+mDragView.getMeasuredHeight();
+            if (newRight>=getMeasuredWidth())
+                newRight=getMeasuredWidth();
+            if (newBottom>=getMeasuredHeight())
+                newBottom=getMeasuredHeight();
+
+            if (newRight==getMeasuredWidth()){
+                newLeft=newRight-mDragView.getMeasuredWidth();
+            }
+            if (newBottom==getMeasuredHeight()){
+                newTop=newBottom-mDragView.getMeasuredHeight();
+            }
+            Log.e("ltrb",newLeft+"  "+newTop+"  "+newRight+"  "+newBottom);
+            mDragView.layout(newLeft,newTop,newRight,newBottom);
         }
     }
 
