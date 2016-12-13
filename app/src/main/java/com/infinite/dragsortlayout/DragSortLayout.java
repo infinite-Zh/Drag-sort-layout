@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -146,7 +145,6 @@ public class DragSortLayout extends ViewGroup{
             case MotionEvent.ACTION_DOWN:
                 mLastX=event.getX();
                 mLastY=event.getY();
-                bCancel=false;
                 mLongClickRunnable=new LongClickRunnable(mLastX,mLastY);
                 postDelayed(mLongClickRunnable,LONG_CLICK_MODE_TIME);
                 mDragView=findChildByPoints(mLastX,mLastY);
@@ -179,7 +177,6 @@ public class DragSortLayout extends ViewGroup{
     }
 
     private boolean bLongClickMode=false;
-    private boolean bCancel=false;
 
 
     /**
@@ -199,6 +196,7 @@ public class DragSortLayout extends ViewGroup{
                 view.setAlpha(0.7f);
                 vibrate();
                 bLongClickMode=true;
+                //获取时时的view边界
                 mLeft=view.getLeft();
                 mTop=view.getTop();
             }
@@ -268,7 +266,6 @@ public class DragSortLayout extends ViewGroup{
             if (newBottom==getMeasuredHeight()){
                 newTop=newBottom-mDragView.getMeasuredHeight();
             }
-            Log.e("ltrb",newLeft+"  "+newTop+"  "+newRight+"  "+newBottom);
             mDragView.layout(newLeft,newTop,newRight,newBottom);
         }
     }
