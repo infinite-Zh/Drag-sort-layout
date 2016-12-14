@@ -15,6 +15,7 @@ import android.view.WindowManager;
 
 public class DragSortLayout extends ViewGroup {
 
+    private static final float SCALE_RATION = 0.8F;
     private static final float LONG_CLICK_TOUCH_SLOPE = 7;
     /**
      * 进入长按模式的时间
@@ -137,7 +138,14 @@ public class DragSortLayout extends ViewGroup {
 
     private float mLastX, mLastY, mCurrentX, mCurrentY;
     private LongClickRunnable mLongClickRunnable;
+    /**
+     * 拖动的view
+     */
     private View mDragView;
+    /**
+     * 目标view
+     */
+    private View mTargetView;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -240,9 +248,26 @@ public class DragSortLayout extends ViewGroup {
      */
     private void onLongClickFinish(View view, float pointX, float pointY) {
         bLongClickMode = false;
-        if (view != null) {
-            view.setAlpha(1f);
+        if (view == null)
+            return;
+        view.setAlpha(1f);
+        int dragRight = mLeft + view.getMeasuredWidth();
+        int dragBottom = mTop + view.getMeasuredHeight();
+        //没有目标view，拖动view放回原处
+        if (mTargetView == null) {
+            mDragView.layout(mLeft, mTop, dragRight, dragBottom);
+            return;
         }
+        int targetLeft = mTargetView.getLeft();
+        int targetRight = mTargetView.getRight();
+        int targetTop = mTargetView.getTop();
+        int targetBottom = mTargetView.getBottom();
+
+        //拖动view和目标view互换位置
+        mDragView.layout(targetLeft, targetTop, targetRight, targetBottom);
+        mTargetView.layout(mLeft, mTop, dragRight, dragBottom);
+        //把目标view恢复原来的大小
+        scaleView(mTargetView,1);
     }
 
     /**
@@ -275,7 +300,7 @@ public class DragSortLayout extends ViewGroup {
                 newTop = newBottom - mDragView.getMeasuredHeight();
             }
             mDragView.layout(newLeft, newTop, newRight, newBottom);
-            calculateCoincidePart(newLeft, newTop, newRight, newBottom);
+            mTargetView = calculateMaxCoincidePartView(newLeft, newTop, newRight, newBottom);
         }
     }
 
@@ -287,7 +312,7 @@ public class DragSortLayout extends ViewGroup {
      * @param r 右边距
      * @param b 下边距
      */
-    private void calculateCoincidePart(int l, int t, int r, int b) {
+    private View calculateMaxCoincidePartView(int l, int t, int r, int b) {
         // 找出拖动view四个角所在的view
         // 左上角所在的view
         View ltView = findChildByPoints(l, t);
@@ -318,18 +343,22 @@ public class DragSortLayout extends ViewGroup {
 
         //重合面积大于其他view的重合面积，且大于拖动view面积一半的
         if (lt >= rt && lt >= rb && lt >= lb && lt >= dragViewProportion * 0.5) {
-            scaleView(ltView, 0.8f);
+            scaleView(ltView, SCALE_RATION);
+            return ltView;
         }
         if (rt >= lt && rt >= rb && rt >= lb && rt >= dragViewProportion * 0.5) {
-            scaleView(rtView, 0.8f);
+            scaleView(rtView, SCALE_RATION);
+            return rtView;
         }
         if (rb >= rt && rb >= lt && rb >= lb && rb >= dragViewProportion * 0.5) {
-            scaleView(rbView, 0.8f);
+            scaleView(rbView, SCALE_RATION);
+            return rbView;
         }
         if (lb >= rt && lb >= rb && lb >= lt && lb >= dragViewProportion * 0.5) {
-            scaleView(lbView, 0.8f);
+            scaleView(lbView, SCALE_RATION);
+            return lbView;
         }
-
+        return null;
     }
 
     /**
