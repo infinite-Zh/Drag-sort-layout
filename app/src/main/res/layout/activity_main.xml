@@ -102,6 +102,48 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:text="14"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="15"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="16"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="17"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="18"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="19"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="20"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="21"/>
 
     </com.infinite.dragsortlayout.DragSortLayout>
 

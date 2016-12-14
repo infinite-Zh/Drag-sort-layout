@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Scroller;
 
 /**
  * Created by inf on 2016/12/8.
@@ -57,6 +59,7 @@ public class DragSortLayout extends ViewGroup {
         mVerticalSpacing = ta.getDimension(R.styleable.DragSortLayout_horizontalSpacing, DEFAULT_VERTICAL_SPACING);
         mStretchMode = ta.getInt(R.styleable.DragSortLayout_stretchMode, STRETCH_MODE_NONE);
         ta.recycle();
+        mScroller=new Scroller(getContext());
 
     }
 
@@ -155,6 +158,8 @@ public class DragSortLayout extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
                 mLastX = event.getX();
                 mLastY = event.getY();
+                mCurrentX=mLastX;
+                mCurrentY=mLastY;
                 mLongClickRunnable = new LongClickRunnable(mLastX, mLastY);
                 postDelayed(mLongClickRunnable, LONG_CLICK_MODE_TIME);
                 mDragView = findChildByPoints(mLastX, mLastY);
@@ -320,8 +325,8 @@ public class DragSortLayout extends ViewGroup {
             int newBottom = newTop + mDragView.getMeasuredHeight();
             if (newRight >= getMeasuredWidth())
                 newRight = getMeasuredWidth();
-            if (newBottom >= getMeasuredHeight())
-                newBottom = getMeasuredHeight();
+//            if (newBottom >= getMeasuredHeight())
+//                newBottom = getMeasuredHeight();
 
             if (newRight == getMeasuredWidth()) {
                 newLeft = newRight - mDragView.getMeasuredWidth();
@@ -331,6 +336,11 @@ public class DragSortLayout extends ViewGroup {
             }
             mDragView.layout(newLeft, newTop, newRight, newBottom);
             mTargetView = calculateMaxCoincidePartView(newLeft, newTop, newRight, newBottom);
+
+//            Log.e("gg",newBottom+" "+getHeight());
+//            if (newBottom==getHeight()-getPaddingTop()-getPaddingBottom()){
+//                mScroller.startScroll(getScrollX(),getScrollY(),0,mDragView.getMeasuredHeight());
+//            }
         }
     }
 
@@ -418,7 +428,9 @@ public class DragSortLayout extends ViewGroup {
      * @return
      */
     private boolean checkForLongClick(float dx, float dy) {
+        Log.e("click",dx+"   "+dy);
         if (Math.abs(dx) <= LONG_CLICK_TOUCH_SLOPE && Math.abs(dy) <= LONG_CLICK_TOUCH_SLOPE) {
+
             return true;
         }
         return false;
@@ -464,5 +476,14 @@ public class DragSortLayout extends ViewGroup {
         mPositionChangedListener=listener;
     }
 
+//    @Override
+//    public void computeScroll() {
+//        super.computeScroll();
+//        if (mScroller.computeScrollOffset()) {
+//            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+//            invalidate();
+//        }
+//    }
 
+    private Scroller mScroller;
 }
