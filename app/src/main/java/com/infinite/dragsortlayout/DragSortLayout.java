@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -150,6 +149,7 @@ public class DragSortLayout extends ViewGroup {
      */
     private View mTargetView;
 
+    private float tempY;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -160,6 +160,7 @@ public class DragSortLayout extends ViewGroup {
                 mLastY = event.getY();
                 mCurrentX=mLastX;
                 mCurrentY=mLastY;
+                tempY=mLastY;
                 mLongClickRunnable = new LongClickRunnable(mLastX, mLastY);
                 postDelayed(mLongClickRunnable, LONG_CLICK_MODE_TIME);
                 mDragView = findChildByPoints(mLastX, mLastY);
@@ -171,6 +172,16 @@ public class DragSortLayout extends ViewGroup {
                 if (!bLongClickMode && mLongClickRunnable != null && !checkForLongClick(mCurrentX - mLastX,
                                                                                         mCurrentY - mLastY)) {
                     removeCallbacks(mLongClickRunnable);
+//                    mScroller.startScroll(0, getScrollY(), 0, (int) (mCurrentY-tempY));
+//                    int dy= (int) (mCurrentY-tempY);
+//                    Log.e("top&bottom",getTop()+"  "+getBottom());
+//                    if (dy>0&&getTop()!=0){
+//                        scrollBy(0,-dy);
+//                    }
+//                    if (dy<0&&getBottom()!=0){
+//                        scrollBy(0,-dy);
+//                    }
+                    tempY=mCurrentY;
                 } else {
                     onActionMove(mCurrentX - mLastX, mCurrentY - mLastY);
                 }
@@ -428,9 +439,7 @@ public class DragSortLayout extends ViewGroup {
      * @return
      */
     private boolean checkForLongClick(float dx, float dy) {
-        Log.e("click",dx+"   "+dy);
         if (Math.abs(dx) <= LONG_CLICK_TOUCH_SLOPE && Math.abs(dy) <= LONG_CLICK_TOUCH_SLOPE) {
-
             return true;
         }
         return false;
@@ -476,14 +485,14 @@ public class DragSortLayout extends ViewGroup {
         mPositionChangedListener=listener;
     }
 
-//    @Override
-//    public void computeScroll() {
-//        super.computeScroll();
-//        if (mScroller.computeScrollOffset()) {
-//            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
-//            invalidate();
-//        }
-//    }
+    @Override
+    public void computeScroll() {
+        super.computeScroll();
+        if (mScroller.computeScrollOffset()) {
+            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+            invalidate();
+        }
+    }
 
     private Scroller mScroller;
 }
