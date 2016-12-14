@@ -275,11 +275,17 @@ public class DragSortLayout extends ViewGroup {
             }
         }
         //拖动view和目标view互换位置
-        mDragView.layout(targetLeft, targetTop, targetRight, targetBottom);
-        mTargetView.layout(mLeft, mTop, dragRight, dragBottom);
+//        mDragView.layout(targetLeft, targetTop, targetRight, targetBottom);
+//        mTargetView.layout(mLeft, mTop, dragRight, dragBottom);
         //把目标view恢复原来的大小
         scaleView(mTargetView,1);
 
+        //移除拖动view
+        removeViewAt(dragPosition);
+        //把拖动view add到目标位置
+        addView(mDragView,targetPosition);
+        //重新布局
+        requestLayout();
 //        removeViewAt(targetPosition);
 //        if (dragPosition>targetPosition){
 //            removeViewAt(dragPosition-1);
