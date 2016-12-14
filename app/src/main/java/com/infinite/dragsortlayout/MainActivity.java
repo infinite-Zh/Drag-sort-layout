@@ -21,5 +21,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("click",((TextView)childView).getText()+"   "+position);
             }
         });
+
+        mLayout.setOnPositionChangedListener(new DragSortLayout.OnPositionChangedListener() {
+            @Override
+            public void onPositionChanged(View dragView, View targetView, int dragPosition, int targetPosition) {
+                Log.e("postion","dragPosition="+dragPosition+"  targetPosition="+targetPosition);
+            }
+        });
     }
 }

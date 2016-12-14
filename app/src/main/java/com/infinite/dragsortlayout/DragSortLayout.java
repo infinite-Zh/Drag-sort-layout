@@ -263,11 +263,34 @@ public class DragSortLayout extends ViewGroup {
         int targetTop = mTargetView.getTop();
         int targetBottom = mTargetView.getBottom();
 
+        int targetPosition=-1,dragPosition=-1;
+
+        for(int i=0;i<getChildCount();i++){
+            View child=getChildAt(i);
+            if (child==mDragView){
+                dragPosition=i;
+            }
+            if (child==mTargetView){
+                targetPosition=i;
+            }
+        }
         //拖动view和目标view互换位置
         mDragView.layout(targetLeft, targetTop, targetRight, targetBottom);
         mTargetView.layout(mLeft, mTop, dragRight, dragBottom);
         //把目标view恢复原来的大小
         scaleView(mTargetView,1);
+
+//        removeViewAt(targetPosition);
+//        if (dragPosition>targetPosition){
+//            removeViewAt(dragPosition-1);
+//        }
+        addView(mTargetView,dragPosition-1);
+        addView(mDragView,dragPosition);
+
+
+        if (mPositionChangedListener!=null){
+            mPositionChangedListener.onPositionChanged(mDragView,mTargetView,dragPosition,targetPosition);
+        }
     }
 
     /**
@@ -399,6 +422,9 @@ public class DragSortLayout extends ViewGroup {
         vibrator.vibrate(100);
     }
 
+    /**
+     * 点击事件回调接口
+     */
     public interface OnItemClickListener {
         void onItemClick(View childView, int position);
     }
@@ -421,5 +447,15 @@ public class DragSortLayout extends ViewGroup {
             }
         }
     }
+
+    public interface OnPositionChangedListener{
+        void onPositionChanged(View dragView,View targetView,int dragPosition,int targetPosition);
+    }
+
+    private OnPositionChangedListener mPositionChangedListener;
+    public void setOnPositionChangedListener(OnPositionChangedListener listener){
+        mPositionChangedListener=listener;
+    }
+
 
 }
