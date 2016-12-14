@@ -6,7 +6,7 @@
 
 ----
 用法：
-1.1 xml中：
+1. xml中：
 ```
 <com.infinite.dragsortlayout.DragSortLayout
         android:id="@+id/dragLayout"
@@ -20,7 +20,7 @@
 ```
 添加布局，里面添加子view
 
-2.2 在代码中：
+2. 在代码中：
 设置点击事件
 ```
 mLayout.setOnItemClickListener(new DragSortLayout.OnItemClickListener() {
@@ -40,7 +40,7 @@ mLayout.setOnPositionChangedListener(new DragSortLayout.OnPositionChangedListene
             }
         });
 ```
-3.3 xml参数解释：
+3. xml参数解释：
 
   | 参数  | 含义  |
   | :----:  | :-----: |
