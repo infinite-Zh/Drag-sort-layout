@@ -178,6 +178,7 @@ public class DragSortLayout extends ViewGroup {
                 }
                 if (mLongClickRunnable != null)
                     removeCallbacks(mLongClickRunnable);
+                if (bLongClickMode)
                 onLongClickFinish(mDragView, mCurrentX, mCurrentY);
 
                 break;
