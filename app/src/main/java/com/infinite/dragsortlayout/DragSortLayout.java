@@ -284,8 +284,8 @@ public class DragSortLayout extends ViewGroup {
 //        if (dragPosition>targetPosition){
 //            removeViewAt(dragPosition-1);
 //        }
-        addView(mTargetView,dragPosition-1);
-        addView(mDragView,dragPosition);
+//        addView(mTargetView,dragPosition-1);
+//        addView(mDragView,dragPosition);
 
 
         if (mPositionChangedListener!=null){
