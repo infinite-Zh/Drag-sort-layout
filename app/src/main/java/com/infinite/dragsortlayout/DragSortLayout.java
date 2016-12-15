@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Vibrator;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,14 @@ import android.widget.Scroller;
 
 public class DragSortLayout extends ViewGroup {
 
-    private static final float SCALE_RATION = 0.8F;
+    /**
+     * 顶部和底部分别距离屏幕顶部和底部的距离
+     */
+    private int mTopBoarder,mBottomBoarder;
+    /**
+     * 拖动到目标view时，view的默认缩放比例
+     */
+    private static final float SCALE_RATION = 0.8f;
     private static final float LONG_CLICK_TOUCH_SLOPE = 7;
     /**
      * 进入长按模式的时间
@@ -86,6 +94,7 @@ public class DragSortLayout extends ViewGroup {
             //左偏移量增加一个view的宽度
             leftOffset += child.getMeasuredWidth();
         }
+        Log.e("onLayout","layout");
     }
 
 
@@ -150,6 +159,7 @@ public class DragSortLayout extends ViewGroup {
     private View mTargetView;
 
     private float tempY;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -173,15 +183,24 @@ public class DragSortLayout extends ViewGroup {
                                                                                         mCurrentY - mLastY)) {
                     removeCallbacks(mLongClickRunnable);
 //                    mScroller.startScroll(0, getScrollY(), 0, (int) (mCurrentY-tempY));
-//                    int dy= (int) (mCurrentY-tempY);
-//                    Log.e("top&bottom",getTop()+"  "+getBottom());
-//                    if (dy>0&&getTop()!=0){
-//                        scrollBy(0,-dy);
-//                    }
-//                    if (dy<0&&getBottom()!=0){
-//                        scrollBy(0,-dy);
-//                    }
-                    tempY=mCurrentY;
+                    int dy= (int) (mCurrentY-tempY);
+
+                    int scrollY=getScrollY();
+
+                    //可滑动的最大值
+                    int maxScroll=getHeight()-((ViewGroup) getParent()).getHeight();
+                    //如果滑动距离超过最大滑动距离，重新设置dy，防止滑出边界
+                    if (scrollY-dy>maxScroll){
+                        dy=maxScroll-scrollY;
+                    }
+                    if (scrollY-dy<0){
+                        dy=0;
+                    }
+                    if (scrollY>=0&&scrollY<=maxScroll){
+                        scrollBy(0,-dy);
+                        tempY=mCurrentY;
+                    }
+
                 } else {
                     onActionMove(mCurrentX - mLastX, mCurrentY - mLastY);
                 }

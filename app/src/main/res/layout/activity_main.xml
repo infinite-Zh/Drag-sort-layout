@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <com.infinite.dragsortlayout.DragSortLayout
         android:id="@+id/dragLayout"
@@ -138,6 +138,30 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:text="20"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="21"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="21"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="21"/>
+        <TextView
+            android:background="@color/colorAccent"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text="21"/>
         <TextView
             android:background="@color/colorAccent"
             android:gravity="center"
