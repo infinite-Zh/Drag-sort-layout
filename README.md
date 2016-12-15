@@ -53,3 +53,4 @@ mLayout.setOnPositionChangedListener(new DragSortLayout.OnPositionChangedListene
   update：
   * 添加了滑动和fling;
   * 修改了滑动后点击或长按是，对应view不正确的bug;
+  * 当view拖动到屏幕底端或者顶端时，布局自动滚动一段距离
