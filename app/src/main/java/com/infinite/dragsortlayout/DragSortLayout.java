@@ -219,14 +219,9 @@ public class DragSortLayout extends ViewGroup {
                     int maxScroll=getHeight()-((ViewGroup) getParent()).getHeight();
                     mTracker.computeCurrentVelocity(1000);
                     float v=mTracker.getYVelocity();
-                    Log.e("v",v+"  "+getScrollY());
                     int dy= -(int) ((int) (maxScroll*0.3)*v/5000);
-//                    if (dy-getScrollY()>maxScroll){
-//                        dy=maxScroll+getScrollY();
-//                    }
-
-//                    mScroller.startScroll(getScrollX(), getScrollY(), 0, dy,1000);
-//                    mScroller.fling(getScrollX(),getScrollY(),0,(int)v,0,0,0,maxScroll+getScrollY());
+                    //开始滚动
+                    mScroller.startScroll(getScrollX(), getScrollY(), 0, dy,1000);
                 }
                 mTracker.recycle();
 
@@ -528,14 +523,14 @@ public class DragSortLayout extends ViewGroup {
 
         if (mScroller.computeScrollOffset()) {
             int y=mScroller.getCurrY();
-            if (getScrollY()>=maxScroll){
+            //边界控制
+            if (y>=maxScroll){
                 y=maxScroll;
             }
-            if (getScrollY()<=0){
+            if (y<=0){
                 y=0;
             }
             scrollTo(mScroller.getCurrX(), y);
-            Log.e("y",y+"");
             invalidate();
         }
     }
