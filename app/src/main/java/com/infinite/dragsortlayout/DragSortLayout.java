@@ -6,6 +6,7 @@ import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -94,7 +95,6 @@ public class DragSortLayout extends ViewGroup {
             //左偏移量增加一个view的宽度
             leftOffset += child.getMeasuredWidth();
         }
-        Log.e("onLayout","layout");
     }
 
 
@@ -160,14 +160,16 @@ public class DragSortLayout extends ViewGroup {
 
     private float tempY;
 
+    private VelocityTracker mTracker;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                mTracker=VelocityTracker.obtain();
                 mLastX = event.getX();
-                mLastY = event.getY();
+                mLastY = event.getY()+getScrollY();
                 mCurrentX=mLastX;
                 mCurrentY=mLastY;
                 tempY=mLastY;
@@ -176,7 +178,8 @@ public class DragSortLayout extends ViewGroup {
                 mDragView = findChildByPoints(mLastX, mLastY);
                 break;
             case MotionEvent.ACTION_MOVE:
-                mCurrentY = event.getY();
+                mTracker.addMovement(event);
+                mCurrentY = event.getY()+getScrollY();
                 mCurrentX = event.getX();
                 //如果不在长按模式，并且滑动距离超过默认设置的大小，移除长按runnable
                 if (!bLongClickMode && mLongClickRunnable != null && !checkForLongClick(mCurrentX - mLastX,
@@ -211,10 +214,28 @@ public class DragSortLayout extends ViewGroup {
                 if (!bLongClickMode && checkForLongClick(mCurrentX - mLastX, mCurrentY - mLastY)) {
                     processClick(mLastX, mLastY);
                 }
+
+                if (!bLongClickMode && !checkForLongClick(mCurrentX - mLastX, mCurrentY - mLastY)) {
+                    int maxScroll=getHeight()-((ViewGroup) getParent()).getHeight();
+                    mTracker.computeCurrentVelocity(1000);
+                    float v=mTracker.getYVelocity();
+                    Log.e("v",v+"  "+getScrollY());
+                    int dy= -(int) ((int) (maxScroll*0.3)*v/5000);
+//                    if (dy-getScrollY()>maxScroll){
+//                        dy=maxScroll+getScrollY();
+//                    }
+
+//                    mScroller.startScroll(getScrollX(), getScrollY(), 0, dy,1000);
+//                    mScroller.fling(getScrollX(),getScrollY(),0,(int)v,0,0,0,maxScroll+getScrollY());
+                }
+                mTracker.recycle();
+
                 if (mLongClickRunnable != null)
                     removeCallbacks(mLongClickRunnable);
                 if (bLongClickMode)
                 onLongClickFinish(mDragView, mCurrentX, mCurrentY);
+
+
 
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -367,10 +388,6 @@ public class DragSortLayout extends ViewGroup {
             mDragView.layout(newLeft, newTop, newRight, newBottom);
             mTargetView = calculateMaxCoincidePartView(newLeft, newTop, newRight, newBottom);
 
-//            Log.e("gg",newBottom+" "+getHeight());
-//            if (newBottom==getHeight()-getPaddingTop()-getPaddingBottom()){
-//                mScroller.startScroll(getScrollX(),getScrollY(),0,mDragView.getMeasuredHeight());
-//            }
         }
     }
 
@@ -507,8 +524,18 @@ public class DragSortLayout extends ViewGroup {
     @Override
     public void computeScroll() {
         super.computeScroll();
+        int maxScroll=getHeight()-((ViewGroup) getParent()).getHeight();
+
         if (mScroller.computeScrollOffset()) {
-            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+            int y=mScroller.getCurrY();
+            if (getScrollY()>=maxScroll){
+                y=maxScroll;
+            }
+            if (getScrollY()<=0){
+                y=0;
+            }
+            scrollTo(mScroller.getCurrX(), y);
+            Log.e("y",y+"");
             invalidate();
         }
     }
