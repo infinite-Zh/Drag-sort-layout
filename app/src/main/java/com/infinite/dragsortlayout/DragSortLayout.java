@@ -2,8 +2,10 @@ package com.infinite.dragsortlayout;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Rect;
 import android.os.Vibrator;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -355,6 +357,10 @@ public class DragSortLayout extends ViewGroup {
      */
     private int mLeft, mTop;
 
+    /**
+     * 上一次布局时，bottom的值，用来判断是向上还是向下拖动
+     */
+    private int mLastBottom;
     private void onActionMove(float dx, float dy) {
         if (mDragView != null && bLongClickMode) {
 
@@ -370,8 +376,8 @@ public class DragSortLayout extends ViewGroup {
             int newBottom = newTop + mDragView.getMeasuredHeight();
             if (newRight >= getMeasuredWidth())
                 newRight = getMeasuredWidth();
-//            if (newBottom >= getMeasuredHeight())
-//                newBottom = getMeasuredHeight();
+            if (newBottom >= getMeasuredHeight())
+                newBottom = getMeasuredHeight();
 
             if (newRight == getMeasuredWidth()) {
                 newLeft = newRight - mDragView.getMeasuredWidth();
@@ -381,6 +387,23 @@ public class DragSortLayout extends ViewGroup {
             }
             mDragView.layout(newLeft, newTop, newRight, newBottom);
             mTargetView = calculateMaxCoincidePartView(newLeft, newTop, newRight, newBottom);
+            Log.d("move", newBottom+"  "+getMeasuredHeight()+"  "+getHeight());
+
+            //获取dragView的可视区域
+            Rect r=new Rect();
+            mDragView.getLocalVisibleRect(r);
+            int scrollY=0;
+            //如果botom小于dragView高度，并且是向下拉
+            if (r.bottom<mDragView.getMeasuredHeight()&&mLastBottom<newBottom){
+                scrollY=mDragView.getMeasuredHeight();
+            }
+            //如果top>0，并且是向上拉
+            if (r.top>0&&mLastBottom>newBottom){
+                scrollY=-mDragView.getMeasuredHeight();
+            }
+            //滚动
+            mScroller.startScroll(getScrollX(), getScrollY(), 0,  scrollY,200);
+            mLastBottom=newBottom;
 
         }
     }
