@@ -48,3 +48,8 @@ mLayout.setOnPositionChangedListener(new DragSortLayout.OnPositionChangedListene
   | verticalSpacing | 垂直间距  |
   | columeSize  |  列数 |
   | stretchMode | 适应模式 适应父view大小或者维持自己的大小 |
+
+  ---
+  update：
+  * 添加了滑动和fling;
+  * 修改了滑动后点击或长按是，对应view不正确的bug;
